@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WinesApi.Models;
+using WinesApi.Services;
 
 namespace WinesApi
 {
@@ -33,6 +34,8 @@ namespace WinesApi
 
             services.AddSingleton<IWineCellarDatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<WineCellarDatabaseSettings>>().Value);
+
+            services.AddSingleton<WineService>();
             services.AddControllers();
         }
 
