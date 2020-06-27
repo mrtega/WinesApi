@@ -9,10 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SwaggerOptions = WinesApi.Options.SwaggerOptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.Swagger;
 using WinesApi.Models;
 using WinesApi.Services;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace WinesApi
 {
@@ -37,6 +40,10 @@ namespace WinesApi
 
             services.AddSingleton<WineService>();
             services.AddControllers();
+            services.AddSwaggerGen(x =>
+            {
+                x.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Wine API", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +53,21 @@ namespace WinesApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            //Redirect requests from "/" to "/swagger"
+            var option = new RewriteOptions();
+            option.AddRedirect("^$", "swagger");
+            app.UseRewriter(option);
+
+            var swaggerOptions = new SwaggerOptions();
+            Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
+
+            app.UseSwagger(options => { options.RouteTemplate = swaggerOptions.JsonRoute; });
+
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
+            });
 
             app.UseHttpsRedirection();
 
